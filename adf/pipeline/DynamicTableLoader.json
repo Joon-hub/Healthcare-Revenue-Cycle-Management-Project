@@ -131,7 +131,7 @@
 											"source": {
 												"type": "AzureDatabricksDeltaLakeSource",
 												"query": {
-													"value": "@concat('SELECT COALESCE(CAST(MAX(loaddate) AS DATE), ''1900-01-01'') AS last_fetched_date FROM audit.load_logs WHERE data_source = ''', item().datasource, ''' AND tablename = ''', item().tablename, '''')",
+													"value": "@concat('select coalesce(cast(max(loaddate) as date),''','1900-01-01',''') as last_fetched_date from audit.load_logs where',' data_source=''',item().datasource,''' and tablename=''',item().tablename,'''')\n",
 													"type": "Expression"
 												}
 											},
@@ -139,8 +139,8 @@
 												"referenceName": "AzureDatabricksDeltaLakeDataset1",
 												"type": "DatasetReference",
 												"parameters": {
-													"schema_name": "audit",
-													"table_name": "load_logs"
+													"schema_name": "\"aa\"",
+													"table_name": "\"a\""
 												}
 											},
 											"firstRowOnly": true
@@ -167,15 +167,13 @@
 										"userProperties": [],
 										"typeProperties": {
 											"source": {
-												"type": "ParquetSource",
-												"storeSettings": {
-													"type": "AzureBlobFSReadSettings",
-													"recursive": false,
-													"enablePartitionDiscovery": false
+												"type": "AzureSqlSource",
+												"sqlReaderQuery": {
+													"value": "@concat('select *,''',item().datasource,''' as datasource from ',item().tablename,' where ',item().watermark,' >= ''',activity('Get_Last_Load_Date').output.firstRow.last_fetched_date,'''')\n",
+													"type": "Expression"
 												},
-												"formatSettings": {
-													"type": "ParquetReadSettings"
-												}
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
 											},
 											"sink": {
 												"type": "ParquetSink",
@@ -198,18 +196,18 @@
 										},
 										"inputs": [
 											{
-												"referenceName": "Adls_parquet_ds",
+												"referenceName": "AzureSqlTable_ds",
 												"type": "DatasetReference",
 												"parameters": {
-													"container": {
+													"db_name": {
 														"value": "@item().database",
 														"type": "Expression"
 													},
-													"file_path": {
+													"schema_name": {
 														"value": "@split(item().tablename,'.')[0]",
 														"type": "Expression"
 													},
-													"file_name": {
+													"table_name": {
 														"value": "@split(item().tablename,'.')[1]",
 														"type": "Expression"
 													}
