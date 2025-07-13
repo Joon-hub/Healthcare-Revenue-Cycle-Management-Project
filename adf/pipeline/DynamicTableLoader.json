@@ -26,6 +26,15 @@
 							"type": "DelimitedTextReadSettings"
 						}
 					},
+					"dataset": {
+						"referenceName": "Adls_flat_file_ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": "configs",
+							"file_path": "emr",
+							"file_name": "load_config.csv"
+						}
+					},
 					"firstRowOnly": false
 				}
 			},
@@ -61,10 +70,26 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"fieldList": [],
+								"dataset": {
+									"referenceName": "Adls_parquet_ds",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": "bronze",
+										"file_path": {
+											"value": "@item().targetpath",
+											"type": "Expression"
+										},
+										"file_name": {
+											"value": "@split(item().tablename,'.')[1]",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"exists"
+								],
 								"storeSettings": {
 									"type": "AzureBlobFSReadSettings",
-									"recursive": true,
 									"enablePartitionDiscovery": false
 								},
 								"formatSettings": {
@@ -110,6 +135,14 @@
 													"type": "Expression"
 												}
 											},
+											"dataset": {
+												"referenceName": "AzureDatabricksDeltaLakeDataset1",
+												"type": "DatasetReference",
+												"parameters": {
+													"schema_name": "audit",
+													"table_name": "load_logs"
+												}
+											},
 											"firstRowOnly": true
 										}
 									},
@@ -134,13 +167,15 @@
 										"userProperties": [],
 										"typeProperties": {
 											"source": {
-												"type": "AzureSqlSource",
-												"sqlReaderQuery": {
-													"value": "@concat('SELECT *, ''', item().datasource, ''' AS datasource FROM ', item().tablename, ' WHERE ', item().watermark, ' >= ''', activity('Get_Last_Load_Date').output.firstRow.last_fetched_date, '''')\n",
-													"type": "Expression"
+												"type": "ParquetSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": false,
+													"enablePartitionDiscovery": false
 												},
-												"queryTimeout": "02:00:00",
-												"partitionOption": "None"
+												"formatSettings": {
+													"type": "ParquetReadSettings"
+												}
 											},
 											"sink": {
 												"type": "ParquetSink",
@@ -151,8 +186,53 @@
 													"type": "ParquetWriteSettings"
 												}
 											},
-											"enableStaging": false
-										}
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "Adls_parquet_ds",
+												"type": "DatasetReference",
+												"parameters": {
+													"container": {
+														"value": "@item().database",
+														"type": "Expression"
+													},
+													"file_path": {
+														"value": "@split(item().tablename,'.')[0]",
+														"type": "Expression"
+													},
+													"file_name": {
+														"value": "@split(item().tablename,'.')[1]",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "Adls_parquet_ds",
+												"type": "DatasetReference",
+												"parameters": {
+													"container": "bronze",
+													"file_path": {
+														"value": "@item().targetpath",
+														"type": "Expression"
+													},
+													"file_name": {
+														"value": "@split(item().tablename,'.')[1]",
+														"type": "Expression"
+													}
+												}
+											}
+										]
 									},
 									{
 										"name": "Log_Incremental_Load",
@@ -179,6 +259,14 @@
 												"query": {
 													"value": "@concat('INSERT INTO audit.load_logs (data_source, tablename, numberofrowscopied, watermarkcolumnnname, loaddate) VALUES (''', item().datasource, ''', ''', item().tablename, ''', ', activity('Incremental_Load').output.rowsCopied, ', ''', item().watermark, ''', ''', utcNow(), ''')')",
 													"type": "Expression"
+												}
+											},
+											"dataset": {
+												"referenceName": "AzureDatabricksDeltaLakeDataset1",
+												"type": "DatasetReference",
+												"parameters": {
+													"schema_name": "audit",
+													"table_name": "load_logs"
 												}
 											},
 											"firstRowOnly": false
@@ -217,8 +305,50 @@
 													"type": "ParquetWriteSettings"
 												}
 											},
-											"enableStaging": false
-										}
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "AzureSqlTable_ds",
+												"type": "DatasetReference",
+												"parameters": {
+													"db_name": {
+														"value": "@item().database",
+														"type": "Expression"
+													},
+													"schema_name": {
+														"value": "@split(item().tablename,'.')[0]",
+														"type": "Expression"
+													},
+													"table_name": {
+														"value": "@split(item().tablename,'.')[1]",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "Adls_parquet_ds",
+												"type": "DatasetReference",
+												"parameters": {
+													"container": "bronze",
+													"file_path": {
+														"value": "@item().targetpath",
+														"type": "Expression"
+													},
+													"file_name": "@split(item().tablename,'.')[1]"
+												}
+											}
+										]
 									},
 									{
 										"name": "Log_Full_Load",
@@ -247,7 +377,15 @@
 													"type": "Expression"
 												}
 											},
-											"firstRowOnly": false
+											"dataset": {
+												"referenceName": "AzureDatabricksDeltaLakeDataset1",
+												"type": "DatasetReference",
+												"parameters": {
+													"schema_name": "audit",
+													"table_name": "load_logs"
+												}
+											},
+											"firstRowOnly": true
 										}
 									}
 								]
@@ -304,8 +442,47 @@
 													"type": "ParquetWriteSettings"
 												}
 											},
-											"enableStaging": false
-										}
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "Adls_parquet_ds",
+												"type": "DatasetReference",
+												"parameters": {
+													"container": "bronze",
+													"file_path": {
+														"value": "@item().targetpath",
+														"type": "Expression"
+													},
+													"file_name": {
+														"value": "@split(item().tablename,'.')[1]",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "Adls_parquet_ds",
+												"type": "DatasetReference",
+												"parameters": {
+													"container": "bronze",
+													"file_path": {
+														"value": "@concat(item().targetpath,'/archive/'\n    ,formatDateTime(utcNow(),'yyyy'),\n    '/',formatDateTime(utcNow(),'%M'),\n    '/',formatDateTime(utcNow(),'%d'))",
+														"type": "Expression"
+													},
+													"file_name": "@split(item().tablename,'.')[1]"
+												}
+											}
+										]
 									}
 								]
 							}
