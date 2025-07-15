@@ -96,7 +96,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": " /Users/sayaliarvindchavan@outlook.com/Healthcare-Revenue-Cycle-Management-Project/4. Silver/emr_patients_scd2_(bronze to silver)"
+					"notebookPath": "/Users/sayaliarvindchavan@outlook.com/Healthcare-Revenue-Cycle-Management-Project/4.%20Silver/emr_patients_scd2_%28bronze%20to%20silver%29"
 				},
 				"linkedServiceName": {
 					"referenceName": "AzureDatabricks_LS",
