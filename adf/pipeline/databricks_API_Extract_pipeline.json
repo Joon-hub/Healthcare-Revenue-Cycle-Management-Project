@@ -1,0 +1,51 @@
+{
+	"name": "databricks_API_Extract_pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "icd_code_APIextract_landing",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/sayaliarvindchavan@outlook.com/Healthcare-Revenue-Cycle-Management-Project/2. API Extracts/ICD Code API extract"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_LS",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "NPI_code_APIextract_landing",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/sayaliarvindchavan@outlook.com/Healthcare-Revenue-Cycle-Management-Project/2. API Extracts/NPI API extract"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_LS",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "silver_gold_pipeline"
+		},
+		"annotations": []
+	}
+}
