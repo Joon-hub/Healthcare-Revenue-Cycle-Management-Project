@@ -26,6 +26,8 @@ Key goals:
 Supports both **Full & Incremental Loads** with `watermark`
 **Audit Logging** for data traceability
 **Dynamic Ingestion Pipelines** using ADF `Lookup`, `Filter`, `ForEach`
+## Project Architecture Diagram
+![Alt text](project_architecture_diagram.png)
 
 ## Technology Stack
 
