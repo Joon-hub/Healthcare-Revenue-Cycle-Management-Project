@@ -1,0 +1,95 @@
+{
+    "name": "complete_pipeline",
+    "properties": {
+        "activities": [
+            {
+                "name": "ingest_emr_data",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "DynamicTableLoader",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "API_Extract_ICD_NPI_codes",
+                "description": "icd codes\nnpi codes",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "ingest_emr_data",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "databricks_API_Extract_pipeline",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "Landing_bronze",
+                "description": "claims_data\ncpt_data",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "API_Extract_ICD_NPI_codes",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "databricks_landing_bronze_pipeline",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            },
+            {
+                "name": "silver_gold",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "Landing_bronze",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "databricks_silver_gold",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true
+                }
+            }
+        ],
+        "annotations": []
+    }
+}
