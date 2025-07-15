@@ -79,3 +79,4 @@ CREATE TABLE dbo.transactions (
     ModifiedDate date NOT NULL,
     CONSTRAINT PK_transactions PRIMARY KEY (TransactionID)
 );
+
