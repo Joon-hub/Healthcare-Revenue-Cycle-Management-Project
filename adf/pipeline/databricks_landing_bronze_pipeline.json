@@ -1,0 +1,51 @@
+{
+	"name": "databricks_landing_bronze_pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "cpt_data_landing_bronze",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/sayaliarvindchavan@outlook.com/Healthcare-Revenue-Cycle-Management-Project/3. Bronze/CPT_data (landing to bronze)"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_LS",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "claims_data_landing_bronze",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/sayaliarvindchavan@outlook.com/Healthcare-Revenue-Cycle-Management-Project/3. Bronze/Claims_data (landing to bronze)"
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDatabricks_LS",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "silver_gold_pipeline"
+		},
+		"annotations": []
+	}
+}
